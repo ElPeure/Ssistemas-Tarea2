@@ -1,6 +1,5 @@
 FROM python:3.11-slim
 
-# Instalación de dependencias del sistema
 RUN apt-get update && apt-get install -y \
     chromium-driver \
     chromium \
@@ -14,7 +13,6 @@ RUN apt-get update && apt-get install -y \
     libgtk-3-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Variables necesarias para Selenium y Chromium
 ENV CHROME_BIN=/usr/bin/chromium
 ENV PATH="$PATH:/usr/lib/chromium/"
 
