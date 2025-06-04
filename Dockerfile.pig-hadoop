@@ -1,0 +1,44 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Instalar Java y herramientas necesarias
+RUN apt-get update && apt-get install -y \
+    openjdk-11-jdk \
+    wget \
+    curl \
+    ssh \
+    rsync \
+    unzip \
+    vim \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV HADOOP_VERSION=3.3.6
+ENV PIG_VERSION=0.17.0
+
+# Instalar Hadoop
+RUN wget https://downloads.apache.org/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz && \
+    tar -xzf hadoop-${HADOOP_VERSION}.tar.gz -C /opt && \
+    mv /opt/hadoop-${HADOOP_VERSION} /opt/hadoop && \
+    rm hadoop-${HADOOP_VERSION}.tar.gz
+
+# Instalar Pig
+RUN wget https://downloads.apache.org/pig/pig-${PIG_VERSION}/pig-${PIG_VERSION}.tar.gz && \
+    tar -xzf pig-${PIG_VERSION}.tar.gz -C /opt && \
+    mv /opt/pig-${PIG_VERSION} /opt/pig && \
+    rm pig-${PIG_VERSION}.tar.gz
+
+    
+ENV HADOOP_HOME=/opt/hadoop
+ENV PIG_HOME=/opt/pig
+ENV PATH=$PATH:$HADOOP_HOME/bin:$PIG_HOME/bin
+
+
+WORKDIR /data
+
+
+COPY filtrado.pig /data/
+
+CMD ["bash"]

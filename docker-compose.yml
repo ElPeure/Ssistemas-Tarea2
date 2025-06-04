@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  base:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: mi_base
+      MYSQL_USER: usuario
+      MYSQL_PASSWORD: pass123
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  waze-scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: waze-scraper
+    depends_on:
+      base:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    ports:
+      - "9870:9870"     
+      - "9000:9000"     
+    environment:
+      - CLUSTER_NAME=test-cluster
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode
+    depends_on:
+      - namenode
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+
+  pig:
+    build:
+      context: .
+      dockerfile: Dockerfile.pig-hadoop
+    container_name: pig
+    depends_on:
+      - namenode
+      - datanode
+    tty: true
+    stdin_open: true
+    volumes:
+      - .:/data
+
+volumes:
+  db_data: {}
+  hadoop_namenode: {}
+  hadoop_datanode: {}
+
+
+
+
+
+
+  
+
+
+
